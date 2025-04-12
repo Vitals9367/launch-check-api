@@ -36,6 +36,8 @@ services:
     volumes:
       - launch_check_api-db-data:/var/lib/postgresql/data
     restart: always
+    ports:
+      - "5433:5432"
     healthcheck:
       test: pg_isready -U launch_check_api
       interval: 2s
@@ -43,6 +45,9 @@ services:
       retries: 40
 
   migrator:
+    build:
+      context: .
+      dockerfile: ./Dockerfile
     image: launch_check_api:${LAUNCH_CHECK_API_VERSION:-latest}
     restart: "no"
     command: alembic upgrade head
@@ -55,8 +60,6 @@ services:
     depends_on:
       db:
         condition: service_healthy
-
-
 
 volumes:
   launch_check_api-db-data:

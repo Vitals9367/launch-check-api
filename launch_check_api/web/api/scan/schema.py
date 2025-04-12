@@ -1,20 +1,17 @@
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, HttpUrl
 
+from launch_check_api.db.models.scan_model import ScanStatus
 
-class DummyModelDTO(BaseModel):
-    """
-    DTO for dummy models.
+class ScanRequest(BaseModel):
+    """Scan request model."""
+    target_url: HttpUrl
+    severity_levels: list[str] = ["medium", "high", "critical"]
+    rate_limit: int = 100
+    timeout: int = 10
 
-    It returned when accessing dummy models from the API.
-    """
-
-    id: int
-    name: str
-
-    model_config = ConfigDict(from_attributes=True)
-
-
-class DummyModelInputDTO(BaseModel):
-    """DTO for creating new dummy model."""
-
-    name: str
+class ScanResponse(BaseModel):
+    """Scan response model."""
+    scan_id: int
+    target_url: str
+    status: ScanStatus
+    message: str

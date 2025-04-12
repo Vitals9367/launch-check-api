@@ -61,7 +61,7 @@ class NucleiService:
             self.nuclei_path,
             "-target",
             target,
-            "-je",
+            "-j",
             "-rate-limit",
             str(rate_limit),
             "-timeout",
@@ -81,6 +81,7 @@ class NucleiService:
             stdout, stderr = await self._run_command(command)
 
             results = []
+            print(stdout)
             for line in stdout.splitlines():
                 if line.strip():
                     try:
