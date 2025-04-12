@@ -5,7 +5,7 @@ from launch_check_api.db.models.scan_model import ScanStatus
 class ScanRequest(BaseModel):
     """Scan request model."""
     target_url: HttpUrl
-    severity_levels: list[str] = ["medium", "high", "critical"]
+    severity_levels: list[str] = ["info", "low", "medium", "high", "critical"]
     rate_limit: int = 100
     timeout: int = 10
 
