@@ -1,0 +1,63 @@
+services:
+  api: &main_app
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+    image: launch_check_api:${LAUNCH_CHECK_API_VERSION:-latest}
+    restart: always
+    env_file:
+      - .env
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      LAUNCH_CHECK_API_HOST: 0.0.0.0
+      LAUNCH_CHECK_API_DB_HOST: launch_check_api-db
+      LAUNCH_CHECK_API_DB_PORT: 5432
+      LAUNCH_CHECK_API_DB_USER: launch_check_api
+      LAUNCH_CHECK_API_DB_PASS: launch_check_api
+      LAUNCH_CHECK_API_DB_BASE: launch_check_api
+
+  taskiq-worker:
+    <<: *main_app
+    labels: []
+    command:
+      - taskiq
+      - worker
+      - launch_check_api.tkq:broker
+
+  db:
+    image: postgres:16.3-bullseye
+    hostname: launch_check_api-db
+    environment:
+      POSTGRES_PASSWORD: "launch_check_api"
+      POSTGRES_USER: "launch_check_api"
+      POSTGRES_DB: "launch_check_api"
+    volumes:
+      - launch_check_api-db-data:/var/lib/postgresql/data
+    restart: always
+    healthcheck:
+      test: pg_isready -U launch_check_api
+      interval: 2s
+      timeout: 3s
+      retries: 40
+
+  migrator:
+    image: launch_check_api:${LAUNCH_CHECK_API_VERSION:-latest}
+    restart: "no"
+    command: alembic upgrade head
+    environment:
+      LAUNCH_CHECK_API_DB_HOST: launch_check_api-db
+      LAUNCH_CHECK_API_DB_PORT: 5432
+      LAUNCH_CHECK_API_DB_USER: launch_check_api
+      LAUNCH_CHECK_API_DB_PASS: launch_check_api
+      LAUNCH_CHECK_API_DB_BASE: launch_check_api
+    depends_on:
+      db:
+        condition: service_healthy
+
+
+
+volumes:
+  launch_check_api-db-data:
+    name: launch_check_api-db-data
