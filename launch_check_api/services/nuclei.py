@@ -10,8 +10,6 @@ logger = logging.getLogger(__name__)
 class NucleiError(Exception):
     """Custom exception for Nuclei-related errors"""
 
-
-
 class NucleiService:
     def __init__(self):
         self.nuclei_path = shutil.which("nuclei")

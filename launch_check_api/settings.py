@@ -46,6 +46,12 @@ class Settings(BaseSettings):
     db_base: str = "admin"
     db_echo: bool = False
 
+    # Redis settings
+    redis_host: str = "localhost"
+    redis_port: int = 6379
+    redis_password: str = ""  # Empty string for no password
+    redis_db: int = 0
+
     @property
     def db_url(self) -> URL:
         """
@@ -61,6 +67,14 @@ class Settings(BaseSettings):
             password=self.db_pass,
             path=f"/{self.db_base}",
         )
+
+    @property
+    def redis_url(self) -> str:
+        """
+        Build Redis URL from settings.
+        """
+        auth = f":{self.redis_password}@" if self.redis_password else ""
+        return f"redis://{auth}{self.redis_host}:{self.redis_port}/{self.redis_db}"
 
     model_config = SettingsConfigDict(
         env_file=".env",

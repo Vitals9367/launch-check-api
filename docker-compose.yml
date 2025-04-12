@@ -18,13 +18,37 @@ services:
       LAUNCH_CHECK_API_DB_PASS: launch_check_api
       LAUNCH_CHECK_API_DB_BASE: launch_check_api
 
+  redis:
+    image: redis:7.2-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    command: redis-server --appendonly yes
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
   taskiq-worker:
     <<: *main_app
-    labels: []
     command:
       - taskiq
       - worker
       - launch_check_api.tkq:broker
+    environment:
+      LAUNCH_CHECK_API_REDIS_HOST: redis
+      LAUNCH_CHECK_API_REDIS_PORT: 6379
+      LAUNCH_CHECK_API_DB_HOST: launch_check_api-db
+      LAUNCH_CHECK_API_DB_PORT: 5432
+      LAUNCH_CHECK_API_DB_USER: launch_check_api
+      LAUNCH_CHECK_API_DB_PASS: launch_check_api
+      LAUNCH_CHECK_API_DB_BASE: launch_check_api
+    depends_on:
+      - redis
+      - api
+      - db
 
   db:
     image: postgres:16.3-bullseye
@@ -64,3 +88,5 @@ services:
 volumes:
   launch_check_api-db-data:
     name: launch_check_api-db-data
+  redis-data:
+    name: launch_check_api-redis-data
